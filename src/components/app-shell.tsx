@@ -10,7 +10,8 @@ import { useCurrentUser } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "./ui/button";
 
-const NAV = [
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean };
+const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/products", label: "Products", icon: Package },
   { to: "/categories", label: "Categories", icon: FolderTree },
@@ -20,7 +21,7 @@ const NAV = [
   { to: "/sales", label: "Sales", icon: ReceiptText },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings, adminOnly: true },
-] as const;
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { data: user } = useCurrentUser();
