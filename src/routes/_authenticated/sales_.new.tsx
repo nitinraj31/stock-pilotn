@@ -26,7 +26,7 @@ function NewSale() {
   const [lines, setLines] = useState<Line[]>([]);
   const [pickProduct, setPickProduct] = useState("");
 
-  const { data: customers } = useQuery({ queryKey: ["customers-min"], queryFn: async () => (await supabase.from("customers").select("id,name").order("name")).data ?? [] });
+  const { data: customers } = useQuery({ queryKey: ["customers-min"], queryFn: async () => (await supabase.rpc("list_customer_options")).data ?? [] });
   const { data: products } = useQuery({ queryKey: ["products-sale"], queryFn: async () => (await supabase.from("products").select("id,name,sku,selling_price,gst_rate,quantity").order("name")).data ?? [] });
 
   const totals = useMemo(() => {
