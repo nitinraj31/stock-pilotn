@@ -16,7 +16,12 @@ function PurchasesPage() {
   const { data: user } = useCurrentUser();
   const { data, isLoading } = useQuery({
     queryKey: ["purchases"],
-    queryFn: async () => (await supabase.from("purchases").select("*, supplier:suppliers(name)").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => {
+      const { data: purchases } = await supabase.from("purchases").select("*").order("created_at", { ascending: false });
+      const { data: names } = await supabase.rpc("list_supplier_options");
+      const nameMap = new Map((names ?? []).map((s) => [s.id, s.name]));
+      return (purchases ?? []).map((p: any) => ({ ...p, supplierName: p.supplier_id ? nameMap.get(p.supplier_id) ?? "—" : "—" }));
+    },
   });
 
   return (
@@ -34,7 +39,7 @@ function PurchasesPage() {
                   <TableRow key={p.id}>
                     <TableCell><Link to="/purchases/$id" params={{ id: p.id }} className="text-primary hover:underline num">{p.invoice_no}</Link></TableCell>
                     <TableCell>{fmtDate(p.created_at)}</TableCell>
-                    <TableCell>{p.supplier?.name ?? "—"}</TableCell>
+                    <TableCell>{p.supplierName}</TableCell>
                     <TableCell className="text-right num">{fmtMoney(p.subtotal)}</TableCell>
                     <TableCell className="text-right num">{fmtMoney(p.tax)}</TableCell>
                     <TableCell className="text-right num font-medium">{fmtMoney(p.total)}</TableCell>

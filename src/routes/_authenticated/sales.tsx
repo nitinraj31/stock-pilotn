@@ -14,7 +14,12 @@ export const Route = createFileRoute("/_authenticated/sales")({ component: Sales
 function SalesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["sales-list"],
-    queryFn: async () => (await supabase.from("sales").select("*, customer:customers(name)").order("created_at", { ascending: false })).data ?? [],
+    queryFn: async () => {
+      const { data: sales } = await supabase.from("sales").select("*").order("created_at", { ascending: false });
+      const { data: names } = await supabase.rpc("list_customer_options");
+      const nameMap = new Map((names ?? []).map((c) => [c.id, c.name]));
+      return (sales ?? []).map((s: any) => ({ ...s, customerName: s.customer_id ? nameMap.get(s.customer_id) ?? "Walk-in" : "Walk-in" }));
+    },
   });
 
   return (
@@ -32,7 +37,7 @@ function SalesPage() {
                   <TableRow key={s.id}>
                     <TableCell><Link to="/sales/$id" params={{ id: s.id }} className="text-primary hover:underline num">{s.invoice_no}</Link></TableCell>
                     <TableCell>{fmtDate(s.created_at)}</TableCell>
-                    <TableCell>{s.customer?.name ?? "Walk-in"}</TableCell>
+                    <TableCell>{s.customerName}</TableCell>
                     <TableCell className="text-right num">{fmtMoney(s.subtotal)}</TableCell>
                     <TableCell className="text-right num">{fmtMoney(s.tax)}</TableCell>
                     <TableCell className="text-right num">{fmtMoney(s.discount)}</TableCell>

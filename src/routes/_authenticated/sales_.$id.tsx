@@ -16,9 +16,14 @@ function SaleDetail() {
   const { data } = useQuery({
     queryKey: ["sale", id],
     queryFn: async () => {
-      const { data: s } = await supabase.from("sales").select("*, customer:customers(*)").eq("id", id).maybeSingle();
+      const { data: s } = await supabase.from("sales").select("*").eq("id", id).maybeSingle();
       const { data: items } = await supabase.from("sale_items").select("*, product:products(name, sku)").eq("sale_id", id);
-      return { sale: s, items: items ?? [] };
+      let customerName: string | null = null;
+      if (s?.customer_id) {
+        const { data: name } = await supabase.rpc("get_customer_name", { _id: s.customer_id });
+        customerName = name;
+      }
+      return { sale: s, items: items ?? [], customerName };
     },
   });
 
@@ -28,7 +33,7 @@ function SaleDetail() {
       kind: "sale",
       invoice_no: data.sale.invoice_no,
       date: data.sale.created_at,
-      party: data.sale.customer ?? { name: "Walk-in Customer" },
+      party: data.customerName ? { name: data.customerName } : { name: "Walk-in Customer" },
       items: data.items.map((it: any) => ({
         name: it.product?.name ?? "Unknown", sku: it.product?.sku,
         quantity: it.quantity, unit_price: Number(it.unit_price),
@@ -58,10 +63,7 @@ function SaleDetail() {
       <div className="grid gap-4 lg:grid-cols-3 mb-4">
         <Card className="p-4 lg:col-span-2">
           <p className="text-xs uppercase text-muted-foreground mb-1">Customer</p>
-          <p className="font-semibold">{s.customer?.name ?? "Walk-in Customer"}</p>
-          {s.customer?.email && <p className="text-sm text-muted-foreground">{s.customer.email}</p>}
-          {s.customer?.phone && <p className="text-sm num">{s.customer.phone}</p>}
-          {s.customer?.address && <p className="text-sm text-muted-foreground">{s.customer.address}</p>}
+          <p className="font-semibold">{data.customerName ?? "Walk-in Customer"}</p>
         </Card>
         <Card className="p-4 space-y-2 text-sm">
           <div className="flex justify-between"><span>Subtotal</span><span className="num">{fmtMoney(s.subtotal)}</span></div>

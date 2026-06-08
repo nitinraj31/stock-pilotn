@@ -379,6 +379,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_customer_name: { Args: { _id: string }; Returns: string }
+      get_supplier_name: { Args: { _id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
