@@ -387,6 +387,20 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_manager: { Args: { _user_id: string }; Returns: boolean }
+      list_customer_options: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      list_supplier_options: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "staff"
