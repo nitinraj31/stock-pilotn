@@ -25,7 +25,7 @@ function NewPurchase() {
   const [lines, setLines] = useState<Line[]>([]);
   const [pickProduct, setPickProduct] = useState("");
 
-  const { data: suppliers } = useQuery({ queryKey: ["suppliers-min"], queryFn: async () => (await supabase.rpc("list_supplier_options")).data ?? [] });
+  const { data: suppliers, isLoading: suppliersLoading } = useQuery({ queryKey: ["suppliers-min"], queryFn: async () => (await supabase.rpc("list_supplier_options")).data ?? [] });
   const { data: products } = useQuery({ queryKey: ["products-min"], queryFn: async () => (await supabase.from("products").select("id,name,sku,purchase_price,gst_rate").order("name")).data ?? [] });
 
   const totals = useMemo(() => {
@@ -87,11 +87,12 @@ function NewPurchase() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Supplier</Label>
-              <Select value={supplierId || "none"} onValueChange={(v) => setSupplierId(v === "none" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
+              <Select value={supplierId || "none"} onValueChange={(v) => setSupplierId(v === "none" ? "" : v)} disabled={suppliersLoading}>
+                <SelectTrigger><SelectValue placeholder={suppliersLoading ? "Loading suppliers…" : "Select supplier"} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">— None —</SelectItem>
                   {(suppliers ?? []).map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  {(suppliers ?? []).length === 0 && !suppliersLoading && <div className="px-2 py-4 text-sm text-muted-foreground text-center">No suppliers yet</div>}
                 </SelectContent>
               </Select>
             </div>
